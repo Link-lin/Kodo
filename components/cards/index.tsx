@@ -1,15 +1,7 @@
 "use client";
 
 import type { Card as CardType, CardVariant } from "@/lib/card-types";
-import { TextCard } from "./text-card";
-import { LinksCard } from "./links-card";
-import { ProjectCard } from "./project-card";
-import { ImageCard } from "./image-card";
-import { NotesCard } from "./notes-card";
-import { MusicCard } from "./music-card";
-import { GithubCard } from "./github-card";
-import { NewsCard } from "./news-card";
-import { StockCard } from "./stock-card";
+import { GithubCard } from "./github-card/index";
 
 const CARD_COMPONENTS: Record<
   CardVariant,
@@ -19,15 +11,7 @@ const CARD_COMPONENTS: Record<
     onRemove: () => void;
   }>
 > = {
-  text: TextCard,
-  links: LinksCard,
-  project: ProjectCard,
-  image: ImageCard,
-  notes: NotesCard,
-  music: MusicCard,
   github: GithubCard,
-  news: NewsCard,
-  stock: StockCard,
 };
 
 export function CardRenderer({

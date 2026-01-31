@@ -18,8 +18,9 @@ import {
   GRID_COLS,
   findPositionForMove,
   deltaToGridOffset,
+  deltaToGridOffsetFromRect,
 } from "@/lib/card-types";
-import { CardRenderer } from "./cards";
+import { CardRenderer } from "./cards/index";
 import { CardDragProvider } from "@/contexts/card-drag-context";
 import { cn } from "@/lib/utils";
 
@@ -66,69 +67,50 @@ export function CardGrid({
   onRemoveCard,
   gridRef,
 }: CardGridProps) {
-  const [activeId, setActiveId] = React.useState<string | null>(null);
-  const [previewPosition, setPreviewPosition] = React.useState<{
-    col: number;
-    row: number;
-  } | null>(null);
-
+  const [activeCard, setActiveCard] = React.useState<CardType | null>(null);
+  const [accumulatedDelta, setAccumulatedDelta] = React.useState({
+    x: 0,
+    y: 0,
+  });
+  const [gridRect, setGridRect] = React.useState<DOMRect | null>(null);
   const sensors = useSensors(
     useSensor(PointerSensor, {
       activationConstraint: { distance: 8 },
     })
   );
 
-  const activeCard = React.useMemo(
-    () => (activeId ? cards.find((c) => c.id === activeId) : null),
-    [activeId, cards]
-  );
-
   const handleDragStart = React.useCallback(
     (event: DragStartEvent) => {
-      const id = String(event.active.id);
-      setActiveId(id);
-      const card = cards.find((c) => c.id === id);
-      if (card) {
-        setPreviewPosition(card.position);
-      }
+      const card = cards.find((c) => c.id === event.active.id);
+      setActiveCard(card ?? null);
+      setAccumulatedDelta({ x: 0, y: 0 });
+      setGridRect(gridRef?.current?.getBoundingClientRect() ?? null);
     },
-    [cards]
+    [cards, gridRef]
   );
 
-  const handleDragMove = React.useCallback(
-    (event: DragMoveEvent) => {
-      const { active, delta } = event;
-      const card = cards.find((c) => c.id === active.id);
-      if (!card) return;
-
-      const offset = deltaToGridOffset(delta.x, delta.y);
-      const span = GRID_SPAN[card.size];
-      const preferred = {
-        col: Math.max(0, Math.min(card.position.col + offset.col, GRID_COLS - span.col)),
-        row: Math.max(0, card.position.row + offset.row),
-      };
-      const newPosition = findPositionForMove(
-        cards,
-        card.id,
-        card.size,
-        preferred
-      );
-      setPreviewPosition(newPosition);
-    },
-    [cards]
-  );
+  const handleDragMove = React.useCallback((event: DragMoveEvent) => {
+    // dnd-kit passes total delta from drag start, not incremental
+    setAccumulatedDelta({ x: event.delta.x, y: event.delta.y });
+  }, []);
 
   const handleDragEnd = React.useCallback(
     (event: DragEndEvent) => {
       const { active, delta } = event;
-      setActiveId(null);
-      setPreviewPosition(null);
-      if (delta.x === 0 && delta.y === 0) return;
-
       const card = cards.find((c) => c.id === active.id);
+      const rect = gridRect ?? gridRef?.current?.getBoundingClientRect();
+
+      setActiveCard(null);
+      setAccumulatedDelta({ x: 0, y: 0 });
+      setGridRect(null);
+
+      if (delta.x === 0 && delta.y === 0) return;
       if (!card) return;
 
-      const offset = deltaToGridOffset(delta.x, delta.y);
+      const offset =
+        rect != null
+          ? deltaToGridOffsetFromRect(rect, delta.x, delta.y)
+          : deltaToGridOffset(delta.x, delta.y);
       const preferred = {
         col: Math.max(0, card.position.col + offset.col),
         row: Math.max(0, card.position.row + offset.row),
@@ -150,8 +132,27 @@ export function CardGrid({
         onUpdateCard(card.id, { position: newPosition });
       }
     },
-    [cards, onUpdateCard]
+    [cards, onUpdateCard, gridRect, gridRef]
   );
+
+  const projectedPosition = React.useMemo(() => {
+    if (!activeCard) return null;
+    const rect = gridRect ?? gridRef?.current?.getBoundingClientRect();
+    const offset =
+      rect != null
+        ? deltaToGridOffsetFromRect(rect, accumulatedDelta.x, accumulatedDelta.y)
+        : deltaToGridOffset(accumulatedDelta.x, accumulatedDelta.y);
+    const preferred = {
+      col: Math.max(0, activeCard.position.col + offset.col),
+      row: Math.max(0, activeCard.position.row + offset.row),
+    };
+    const span = GRID_SPAN[activeCard.size];
+    const newCol = Math.min(preferred.col, GRID_COLS - span.col);
+    return findPositionForMove(cards, activeCard.id, activeCard.size, {
+      col: newCol,
+      row: preferred.row,
+    });
+  }, [activeCard, accumulatedDelta.x, accumulatedDelta.y, cards, gridRect, gridRef]);
 
   return (
     <DndContext
@@ -163,7 +164,8 @@ export function CardGrid({
       <div
         ref={gridRef}
         className={cn(
-          "relative grid w-full auto-rows-[100px] grid-cols-12 gap-3 p-4",
+          "relative grid w-full grid-cols-12 gap-3 p-4",
+          "auto-rows-[calc((100%-164px)/12)]",
           "min-h-[calc(100vh-2rem)]"
         )}
       >
@@ -186,22 +188,23 @@ export function CardGrid({
             </div>
           );
         })}
-
-        {/* Drop placeholder - shows where the card will land */}
-        {activeId && activeCard && previewPosition && (
+        {activeCard && projectedPosition && (
           <div
-            className="pointer-events-none z-10 min-w-0 rounded-xl border-2 border-dashed border-primary/60 bg-primary/5"
+            aria-hidden
+            className={cn(
+              "pointer-events-none z-10 min-h-0 min-w-0 rounded-xl",
+              "border-2 border-dashed border-primary/50 bg-primary/5"
+            )}
             style={{
-              gridColumn: `${previewPosition.col + 1} / span ${GRID_SPAN[activeCard.size].col}`,
-              gridRow: `${previewPosition.row + 1} / span ${GRID_SPAN[activeCard.size].row}`,
+              gridColumn: `${projectedPosition.col + 1} / span ${GRID_SPAN[activeCard.size].col}`,
+              gridRow: `${projectedPosition.row + 1} / span ${GRID_SPAN[activeCard.size].row}`,
             }}
           />
         )}
       </div>
-
       <DragOverlay dropAnimation={null}>
         {activeCard ? (
-          <div className="w-48 min-h-[100px] min-w-0 rounded-xl border bg-card py-2 shadow-lg">
+          <div className="w-64 min-h-[140px] min-w-0 rounded-xl border bg-card py-2 shadow-lg">
             <CardRenderer
               card={activeCard}
               onUpdate={() => {}}

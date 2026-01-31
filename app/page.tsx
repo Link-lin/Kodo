@@ -1,6 +1,7 @@
 "use client";
 
 import * as React from "react";
+import Link from "next/link";
 import {
   ContextMenu,
   ContextMenuContent,
@@ -9,7 +10,8 @@ import {
 } from "@/components/ui/context-menu";
 import { useSiteState } from "@/hooks/use-site-state";
 import { CardGrid } from "@/components/card-grid";
-import { BackgroundPicker } from "@/components/background-picker";
+import { Button } from "@/components/ui/button";
+import { Settings } from "lucide-react";
 import { getBackgroundClass } from "@/lib/backgrounds";
 import {
   createCard,
@@ -73,7 +75,17 @@ export default function Home() {
         getBackgroundClass(state.background)
       )}
     >
-      <BackgroundPicker value={state.background} onChange={setBackground} />
+      <Button
+        variant="ghost"
+        size="icon"
+        className="fixed right-4 top-4 z-50 rounded-full bg-background/80 shadow backdrop-blur-sm"
+        title="Settings"
+        asChild
+      >
+        <Link href="/settings">
+          <Settings className="size-5" />
+        </Link>
+      </Button>
 
       <ContextMenu>
         <ContextMenuTrigger asChild>
