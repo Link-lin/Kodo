@@ -1,3 +1,16 @@
+/** Generate a UUID, with fallback for environments without crypto.randomUUID */
+function generateId(): string {
+  if (typeof crypto !== "undefined" && typeof crypto.randomUUID === "function") {
+    return crypto.randomUUID();
+  }
+  // Fallback: generate a UUID-like string
+  return "xxxxxxxx-xxxx-4xxx-yxxx-xxxxxxxxxxxx".replace(/[xy]/g, (c) => {
+    const r = (Math.random() * 16) | 0;
+    const v = c === "x" ? r : (r & 0x3) | 0x8;
+    return v.toString(16);
+  });
+}
+
 export type CardSize = "compact" | "medium" | "expanded";
 
 export type CardVariant = "github";
@@ -45,7 +58,7 @@ export function createCard(
   const config = CARD_VARIANTS[variant];
   const size = config.sizes[0];
   return {
-    id: crypto.randomUUID(),
+    id: generateId(),
     variant,
     size,
     position,

@@ -54,7 +54,7 @@ export function BaseCard({
   return (
     <Card
       className={cn(
-        "group relative flex h-full min-h-0 overflow-hidden py-2 transition-shadow hover:shadow-md",
+        "group relative flex h-full min-h-0 overflow-hidden py-2 transition-all duration-300 ease-out hover:shadow-md",
         className
       )}
     >
@@ -124,7 +124,7 @@ export function BaseCard({
           </DropdownMenuContent>
         </DropdownMenu>
       </div>
-      <div className="flex min-h-0 flex-1 flex-col gap-2 px-4 pb-4 pt-0.5">
+      <div className="flex min-h-0 flex-1 flex-col gap-2 px-4 pb-4 pt-0.5 transition-all duration-300 ease-out">
         {children}
       </div>
     </Card>

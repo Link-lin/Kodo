@@ -12,6 +12,7 @@ import {
   type DragMoveEvent,
   type DragStartEvent,
 } from "@dnd-kit/core";
+import { motion, LayoutGroup } from "framer-motion";
 import type { Card as CardType } from "@/lib/card-types";
 import {
   GRID_SPAN,
@@ -169,31 +170,41 @@ export function CardGrid({
           "min-h-[calc(100vh-2rem)]"
         )}
       >
-        {cards.map((card) => {
-          const span = GRID_SPAN[card.size];
-          return (
-            <div
-              key={card.id}
-              className="min-w-0"
-              style={{
-                gridColumn: `${card.position.col + 1} / span ${span.col}`,
-                gridRow: `${card.position.row + 1} / span ${span.row}`,
-              }}
-            >
-              <DraggableCard
-                card={card}
-                onUpdate={(u) => onUpdateCard(card.id, u)}
-                onRemove={() => onRemoveCard(card.id)}
-              />
-            </div>
-          );
-        })}
+        <LayoutGroup>
+          {cards.map((card) => {
+            const span = GRID_SPAN[card.size];
+            const isBeingDragged = activeCard?.id === card.id;
+            return (
+              <motion.div
+                key={card.id}
+                layout
+                layoutId={card.id}
+                transition={{
+                  layout: { duration: 0.3, ease: "easeOut" },
+                }}
+                className="min-w-0"
+                style={{
+                  gridColumn: `${card.position.col + 1} / span ${span.col}`,
+                  gridRow: `${card.position.row + 1} / span ${span.row}`,
+                  opacity: isBeingDragged ? 0.3 : 1,
+                }}
+              >
+                <DraggableCard
+                  card={card}
+                  onUpdate={(u) => onUpdateCard(card.id, u)}
+                  onRemove={() => onRemoveCard(card.id)}
+                />
+              </motion.div>
+            );
+          })}
+        </LayoutGroup>
         {activeCard && projectedPosition && (
           <div
             aria-hidden
             className={cn(
               "pointer-events-none z-10 min-h-0 min-w-0 rounded-xl",
-              "border-2 border-dashed border-primary/50 bg-primary/5"
+              "border-2 border-dashed border-primary/50 bg-primary/5",
+              "transition-all duration-200 ease-out"
             )}
             style={{
               gridColumn: `${projectedPosition.col + 1} / span ${GRID_SPAN[activeCard.size].col}`,

@@ -73,7 +73,9 @@ export function GithubCard({
       onRemove={onRemove}
       title={ghTitle}
     >
-      <div className="flex flex-col gap-2">{renderContent()}</div>
+      <div key={card.size} className="flex flex-col gap-2 animate-card-content">
+        {renderContent()}
+      </div>
     </BaseCard>
   );
 }
