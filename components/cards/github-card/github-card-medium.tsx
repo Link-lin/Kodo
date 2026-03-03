@@ -7,16 +7,17 @@ import type { ContributionsData } from "./types";
 
 const ACTIVITY_LEGEND_LEVELS = ["#ebedf0", "#9be9a8", "#40c463", "#30a14e", "#216e39"];
 
-type GithubCardMediumProps = {
+type GithubCardMediumContentProps = {
   contributions: ContributionsData;
 };
 
-export function GithubCardMedium({
+/** Shared content: metric + streaks + activity graph. Used by medium card and expanded card. */
+export function GithubCardMediumContent({
   contributions,
-}: GithubCardMediumProps) {
+}: GithubCardMediumContentProps) {
   const displayedTotal = getDisplayedTotal(contributions.weeks);
   return (
-    <div className="github-card github-card--medium">
+    <>
       <section className="github-card-medium__metric" aria-label="Contribution summary">
         <span className="github-card-medium__value" aria-hidden>
           {displayedTotal}
@@ -61,6 +62,20 @@ export function GithubCardMedium({
           <span className="github-card-medium__legend-text">More</span>
         </div>
       </section>
+    </>
+  );
+}
+
+type GithubCardMediumProps = {
+  contributions: ContributionsData;
+};
+
+export function GithubCardMedium({
+  contributions,
+}: GithubCardMediumProps) {
+  return (
+    <div className="github-card github-card--medium">
+      <GithubCardMediumContent contributions={contributions} />
     </div>
   );
 }

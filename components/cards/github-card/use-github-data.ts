@@ -9,12 +9,14 @@ export function useGitHubData(
 ): {
   contributions: ContributionsData | null;
   commits: CommitInfo[];
+  commitsError: string | null;
   loading: boolean;
   error: string | null;
 } {
   const [contributions, setContributions] =
     React.useState<ContributionsData | null>(null);
   const [commits, setCommits] = React.useState<CommitInfo[]>([]);
+  const [commitsError, setCommitsError] = React.useState<string | null>(null);
   const [loading, setLoading] = React.useState(true);
   const [error, setError] = React.useState<string | null>(null);
 
@@ -23,11 +25,13 @@ export function useGitHubData(
       setLoading(false);
       setContributions(null);
       setCommits([]);
+      setCommitsError(null);
       return;
     }
 
     setLoading(true);
     setError(null);
+    setCommitsError(null);
 
     const headers: HeadersInit = githubToken
       ? { "X-GitHub-Token": githubToken }
@@ -43,6 +47,7 @@ export function useGitHubData(
       .then((data) => {
         setContributions(data.contributions);
         setCommits(data.commits ?? []);
+        setCommitsError(data.commitsError ?? null);
       })
       .catch((err) =>
         setError(
@@ -52,5 +57,5 @@ export function useGitHubData(
       .finally(() => setLoading(false));
   }, [username, githubToken]);
 
-  return { contributions, commits, loading, error };
+  return { contributions, commits, commitsError, loading, error };
 }

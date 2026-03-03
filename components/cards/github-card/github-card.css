@@ -17,6 +17,12 @@
   gap: 0.5rem;
 }
 
+/* Expanded: give activity block a max so Recent commits gets visible space */
+.github-card--expanded .github-card-medium__activity {
+  flex: 0 1 auto;
+  min-height: 0;
+}
+
 /* Summary row – "X contributions in past 6 months" (medium + expanded) */
 .github-card__summary-row {
   display: flex;
@@ -81,11 +87,21 @@
   color: var(--muted-foreground);
 }
 
+.github-card__detail-error {
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+  margin: 0;
+  padding: 0.5rem 0;
+}
+
 .github-card__detail-list {
   display: flex;
   flex-direction: column;
   gap: 0.375rem;
   padding-right: 0.25rem;
+  list-style: none;
+  margin: 0;
+  padding-left: 0;
 }
 
 .github-card__commit-link {
@@ -102,12 +118,30 @@
   background: color-mix(in oklab, var(--muted) 40%, transparent);
 }
 
+.github-card__commit-header {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  gap: 0.5rem;
+  min-width: 0;
+}
+
 .github-card__commit-repo {
   overflow: hidden;
   text-overflow: ellipsis;
   white-space: nowrap;
   font-weight: 500;
   color: color-mix(in oklab, var(--foreground) 90%, transparent);
+}
+
+.github-card__commit-sha {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-family: ui-monospace, monospace;
+  color: var(--muted-foreground);
+  padding: 0.125rem 0.25rem;
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--muted) 40%, transparent);
 }
 
 .github-card__commit-message {

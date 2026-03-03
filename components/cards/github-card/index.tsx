@@ -21,7 +21,7 @@ export function GithubCard({
 }) {
   const { keys } = useApiKeys();
   const username = keys.githubUsername;
-  const { contributions, commits, loading, error } = useGitHubData(
+  const { contributions, commits, commitsError, loading, error } = useGitHubData(
     username,
     keys.github
   );
@@ -59,6 +59,7 @@ export function GithubCard({
           <GithubCardExpanded
             contributions={contributions}
             commits={commits}
+            commitsError={commitsError}
           />
         );
       default:

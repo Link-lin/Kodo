@@ -56,13 +56,31 @@ export async function GET(request: NextRequest) {
         }),
       }),
       fetch(
-        `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=30`,
-        { headers: token ? { Authorization: `Bearer ${token}` } : {} }
+        `https://api.github.com/users/${encodeURIComponent(username)}/events?per_page=100`,
+        {
+          headers: {
+            Accept: "application/vnd.github+json",
+            "X-GitHub-Api-Version": "2022-11-28",
+            ...(token && { Authorization: `Bearer ${token}` }),
+          },
+        }
       ),
     ]);
 
     const graphqlData = await graphqlRes.json();
-    const eventsData = await eventsRes.json();
+    let eventsData: unknown = [];
+    let commitsError: string | null = null;
+    try {
+      const rawEvents = await eventsRes.json();
+      if (eventsRes.ok && Array.isArray(rawEvents)) {
+        eventsData = rawEvents;
+      } else if (!eventsRes.ok && typeof rawEvents === "object" && rawEvents !== null && "message" in rawEvents) {
+        commitsError = String((rawEvents as { message?: unknown }).message) || "Events request failed";
+      }
+    } catch {
+      // events response not JSON or failed to parse
+      commitsError = "Could not load events";
+    }
 
     const rateLimitMsg =
       "Add GITHUB_TOKEN to .env.local (create at github.com/settings/tokens), then restart the dev server.";
@@ -104,20 +122,71 @@ export async function GET(request: NextRequest) {
       sha: string;
       url: string;
     }> = [];
+    const headOnlyPushes: Array<{ repo: string; head: string }> = [];
+
     if (Array.isArray(eventsData)) {
       for (const e of eventsData) {
-        if (e.type !== "PushEvent" || !e.payload?.commits) continue;
+        if (e.type !== "PushEvent") continue;
         const repo = e.repo?.name ?? "";
-        for (const c of e.payload.commits) {
-          if (commits.length >= 15) break;
-          commits.push({
-            repo,
-            message: (c.message ?? "").split("\n")[0] ?? "(no message)",
-            sha: c.sha,
-            url: `https://github.com/${repo}/commit/${c.sha}`,
-          });
+        const payload = e.payload as {
+          commits?: Array<{ sha?: string; message?: string }>;
+          head?: string;
+          ref?: string;
+        } | undefined;
+        if (!payload) continue;
+
+        if (Array.isArray(payload.commits) && payload.commits.length > 0) {
+          for (const c of payload.commits) {
+            if (commits.length >= 15) break;
+            commits.push({
+              repo,
+              message: (c.message ?? "").split("\n")[0] ?? "(no message)",
+              sha: c.sha ?? "",
+              url: `https://github.com/${repo}/commit/${c.sha}`,
+            });
+          }
+        } else if (payload.head && repo) {
+          headOnlyPushes.push({ repo, head: payload.head });
         }
       }
+    }
+
+    // Fetch commit messages for PushEvents that omitted payload.commits (max 5 extra requests)
+    const maxHeadFetches = 5;
+    const toFetch = headOnlyPushes.slice(0, maxHeadFetches);
+    const eventHeaders = {
+      Accept: "application/vnd.github+json",
+      "X-GitHub-Api-Version": "2022-11-28",
+      ...(token && { Authorization: `Bearer ${token}` }),
+    };
+    const headCommitResults = await Promise.all(
+      toFetch.map(async ({ repo, head }) => {
+        try {
+          const res = await fetch(
+            `https://api.github.com/repos/${repo}/commits/${head}`,
+            { headers: eventHeaders }
+          );
+          if (!res.ok) return { repo, head, message: null };
+          const data = (await res.json()) as {
+            commit?: { message?: string | null };
+          };
+          const raw = data.commit?.message;
+          const message = raw ? String(raw).split("\n")[0].trim() || "Push" : "Push";
+          return { repo, head, message };
+        } catch {
+          return { repo, head, message: null };
+        }
+      })
+    );
+
+    for (const { repo, head, message } of headCommitResults) {
+      if (commits.length >= 15) break;
+      commits.push({
+        repo,
+        message: message ?? "Push",
+        sha: head,
+        url: `https://github.com/${repo}/commit/${head}`,
+      });
     }
 
     const allDays = weeks.flatMap(
@@ -139,6 +208,7 @@ export async function GET(request: NextRequest) {
         longestStreak,
       },
       commits,
+      ...(commitsError && { commitsError }),
     });
   } catch (err) {
     return NextResponse.json(
