@@ -17,6 +17,8 @@ import type { Card as CardType } from "@/lib/card-types";
 import {
   GRID_SPAN,
   GRID_COLS,
+  GRID_CELL_SIZE_PX,
+  GRID_GAP_PX,
   findPositionForMove,
   deltaToGridOffset,
   deltaToGridOffsetFromRect,
@@ -164,11 +166,14 @@ export function CardGrid({
     >
       <div
         ref={gridRef}
-        className={cn(
-          "relative grid w-full grid-cols-12 gap-3 p-4",
-          "auto-rows-[calc((100%-164px)/12)]",
-          "min-h-[calc(100vh-2rem)]"
-        )}
+        className="card-grid-container relative overflow-auto p-4"
+        style={{
+          display: "grid",
+          gridTemplateColumns: `repeat(${GRID_COLS}, ${GRID_CELL_SIZE_PX}px)`,
+          gridAutoRows: `${GRID_CELL_SIZE_PX}px`,
+          gap: `${GRID_GAP_PX}px`,
+          width: "max-content",
+        }}
       >
         <LayoutGroup>
           {cards.map((card) => {
@@ -215,7 +220,7 @@ export function CardGrid({
       </div>
       <DragOverlay dropAnimation={null}>
         {activeCard ? (
-          <div className="w-64 min-h-[140px] min-w-0 rounded-xl border bg-card py-2 shadow-lg">
+          <div className="drag-overlay-card rounded-xl border bg-card py-2 shadow-lg">
             <CardRenderer
               card={activeCard}
               onUpdate={() => {}}

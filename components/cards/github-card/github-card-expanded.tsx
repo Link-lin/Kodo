@@ -1,6 +1,7 @@
 "use client";
 
-import { ActivityGraph } from "./activity-graph";
+import "./github-card.css";
+import { ActivityGraph, getDisplayedTotal } from "./activity-graph";
 import type { ContributionsData, CommitInfo } from "./types";
 
 type GithubCardExpandedProps = {
@@ -12,42 +13,43 @@ export function GithubCardExpanded({
   contributions,
   commits,
 }: GithubCardExpandedProps) {
+  const displayedTotal = getDisplayedTotal(contributions.weeks);
   return (
-    <div className="flex min-h-0 flex-1 flex-col gap-2">
-      <div className="flex shrink-0 items-baseline gap-2 text-sm">
-        <span className="font-medium">{contributions.totalContributions}</span>
-        <span className="text-muted-foreground">
-          contributions in past 6 months
+    <div className="github-card github-card--expanded">
+      <div className="github-card__summary-row github-card__summary-row--expanded">
+        <span className="github-card__summary-count github-card__summary-count--expanded">{displayedTotal}</span>
+        <span className="github-card__contribution-label">
+          contributions in {contributions.periodLabel ?? "past 6 months"}
         </span>
       </div>
-      <div className="flex shrink-0 flex-col gap-1">
-        <span className="text-muted-foreground text-xs">
+      <div className="github-card__summary-block">
+        <span className="github-card__streak-row">
           Current streak: {contributions.currentStreak} days · Longest:{" "}
           {contributions.longestStreak}
         </span>
-        <div className="min-h-[90px] shrink-0 overflow-x-auto rounded border border-border/50 bg-muted/30 p-2">
+        <div className="github-card__graph-container github-card__graph-container--expanded">
           <ActivityGraph weeks={contributions.weeks} />
         </div>
       </div>
       {commits.length > 0 && (
-        <div className="flex min-h-0 flex-1 flex-col gap-1">
-          <span className="text-muted-foreground shrink-0 text-xs font-medium">
+        <div className="github-card__detail-section">
+          <span className="github-card__detail-label">
             Recent commits
           </span>
-          <div className="min-h-[100px] min-w-0 flex-1 overflow-y-auto">
-            <div className="flex flex-col gap-1.5 pr-1">
+          <div className="github-card__detail">
+            <div className="github-card__detail-list">
               {commits.map((c, i) => (
                 <a
                   key={i}
                   href={c.url}
                   target="_blank"
                   rel="noopener noreferrer"
-                  className="block rounded border border-border/50 bg-muted/20 px-2 py-1.5 text-xs transition-colors hover:bg-muted/40"
+                  className="github-card__commit-link"
                 >
-                  <div className="truncate font-medium text-foreground/90">
+                  <div className="github-card__commit-repo">
                     {c.repo}
                   </div>
-                  <div className="line-clamp-2 truncate text-muted-foreground">
+                  <div className="github-card__commit-message">
                     {c.message || "(no message)"}
                   </div>
                 </a>

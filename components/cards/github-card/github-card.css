@@ -1,0 +1,339 @@
+/* Shared styles for all GitHub card sizes (compact, medium, expanded) */
+
+/* Base root – flex column, full height */
+.github-card {
+  display: flex;
+  flex-direction: column;
+  height: 100%;
+  min-height: 0;
+}
+
+.github-card--medium {
+  gap: 0.75rem;
+}
+
+.github-card--expanded {
+  flex: 1 1 0%;
+  gap: 0.5rem;
+}
+
+/* Summary row – "X contributions in past 6 months" (medium + expanded) */
+.github-card__summary-row {
+  display: flex;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.5rem;
+  font-size: 0.875rem;
+}
+
+.github-card__summary-row--medium {
+  column-gap: 0.5rem;
+  row-gap: 0.125rem;
+}
+
+.github-card__summary-row--expanded {
+  flex-shrink: 0;
+}
+
+.github-card__summary-count {
+  font-variant-numeric: tabular-nums;
+}
+
+.github-card__summary-count--expanded {
+  font-weight: 500;
+}
+
+.github-card__summary-row--medium .github-card__summary-count {
+  font-weight: 600;
+}
+
+.github-card__streak-value {
+  font-weight: 500;
+  color: var(--foreground);
+}
+
+/* Block containing streak text + graph (expanded) */
+.github-card__summary-block {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.github-card__streak-row--medium {
+  gap: 0.5rem;
+  font-size: 0.75rem;
+}
+
+/* Detail section – expanded only (e.g. "Recent commits" + list) */
+.github-card__detail-section {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  gap: 0.25rem;
+}
+
+.github-card__detail-label {
+  flex-shrink: 0;
+  font-size: 0.75rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+}
+
+.github-card__detail-list {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  padding-right: 0.25rem;
+}
+
+.github-card__commit-link {
+  display: block;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: color-mix(in oklab, var(--muted) 20%, transparent);
+  padding: 0.375rem 0.5rem;
+  font-size: 0.75rem;
+  transition: background-color 0.15s ease;
+}
+
+.github-card__commit-link:hover {
+  background: color-mix(in oklab, var(--muted) 40%, transparent);
+}
+
+.github-card__commit-repo {
+  overflow: hidden;
+  text-overflow: ellipsis;
+  white-space: nowrap;
+  font-weight: 500;
+  color: color-mix(in oklab, var(--foreground) 90%, transparent);
+}
+
+.github-card__commit-message {
+  overflow: hidden;
+  display: -webkit-box;
+  -webkit-line-clamp: 2;
+  -webkit-box-orient: vertical;
+  text-overflow: ellipsis;
+  color: var(--muted-foreground);
+}
+
+/* Contribution count label – "contributions in past 6 months" */
+.github-card__contribution-label {
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+/* Streak row – current streak + longest */
+.github-card__streak-row {
+  display: flex;
+  align-items: center;
+  gap: 0.375rem;
+  font-size: 0.75rem;
+  line-height: 1rem;
+  color: var(--muted-foreground);
+}
+
+.github-card__streak-longest {
+  color: color-mix(in oklab, var(--muted-foreground) 80%, transparent);
+}
+
+.github-card__flame-icon {
+  width: 0.875rem;
+  height: 0.875rem;
+  flex-shrink: 0;
+  color: oklch(0.705 0.213 47.604);
+}
+
+/* Graph / activity area – bordered container used by medium and expanded */
+.github-card__graph-container {
+  min-height: 0;
+  flex: 1 1 0%;
+  align-self: flex-start;
+  overflow: auto;
+  padding: 0.375rem;
+  background: color-mix(in oklab, var(--muted) 30%, transparent);
+}
+
+.github-card__graph-container--expanded {
+  flex: 0 0 auto;
+  flex-shrink: 0;
+  overflow-x: auto;
+  padding: 0.5rem;
+}
+
+/* Medium card – graph container (softer, more padding) */
+.github-card__graph-container--medium {
+  padding: 0.625rem;
+  border-radius: var(--radius-md);
+  border: 1px solid color-mix(in oklab, var(--border) 50%, transparent);
+  background: color-mix(in oklab, var(--muted) 20%, transparent);
+}
+
+/* Scrollable detail area – expanded only (e.g. recent commits) */
+.github-card__detail {
+  min-height: 6.25rem;
+  min-width: 0;
+  flex: 1 1 0%;
+  overflow-y: auto;
+}
+
+/* ---- Compact-only (small) ---- */
+.github-card--compact {
+  gap: 0.5rem;
+  padding: 0.25rem;
+}
+
+.github-card__hero-block {
+  display: flex;
+  min-height: 0;
+  flex: 1 1 0%;
+  flex-direction: column;
+  justify-content: flex-start;
+}
+
+.github-card__hero-number {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  line-height: 1;
+  color: var(--foreground);
+  font-size: clamp(2.5rem, min(12vw, 12vh), 5rem);
+}
+
+.github-card__footer {
+  display: flex;
+  flex-shrink: 0;
+  flex-direction: column;
+  gap: 0.5rem;
+}
+
+/* ========== Medium card redesign (dashboard-style hierarchy) ========== */
+
+.github-card-medium__metric {
+  display: flex;
+  align-items: baseline;
+  gap: 0.625rem;
+  flex-shrink: 0;
+}
+
+.github-card-medium__value {
+  font-variant-numeric: tabular-nums;
+  font-weight: 700;
+  font-size: 1.75rem;
+  line-height: 1.15;
+  letter-spacing: -0.025em;
+  color: var(--foreground);
+}
+
+.github-card-medium__metric-label {
+  display: flex;
+  flex-direction: row;
+  flex-wrap: wrap;
+  align-items: baseline;
+  gap: 0.375rem;
+}
+
+.github-card-medium__metric-title {
+  font-size: 0.8125rem;
+  font-weight: 600;
+  color: var(--foreground);
+}
+
+.github-card-medium__metric-context {
+  font-size: 0.6875rem;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.04em;
+}
+
+/* Streaks: current streak as a soft pill for emphasis */
+.github-card-medium__streaks {
+  display: flex;
+  align-items: center;
+  gap: 0.5rem;
+  flex-shrink: 0;
+  padding: 0.375rem 0;
+  font-size: 0.75rem;
+  color: var(--muted-foreground);
+}
+
+.github-card-medium__streak {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+}
+
+.github-card-medium__streak--current {
+  padding: 0.25rem 0.5rem;
+  border-radius: var(--radius);
+  background: color-mix(in oklab, var(--muted) 50%, transparent);
+  color: var(--foreground);
+  font-weight: 500;
+}
+
+.github-card-medium__streak--current .github-card__flame-icon {
+  color: oklch(0.65 0.2 45);
+}
+
+.github-card-medium__streak--longest {
+  gap: 0.375rem;
+  color: var(--muted-foreground);
+}
+
+.github-card-medium__streak-divider {
+  width: 1px;
+  height: 0.875rem;
+  background: var(--border);
+  flex-shrink: 0;
+}
+
+/* Activity section: clearer separation and label */
+.github-card-medium__activity {
+  display: flex;
+  flex-direction: column;
+  gap: 0.375rem;
+  min-height: 0;
+  flex: 1 1 0%;
+  padding-top: 0.25rem;
+}
+
+.github-card-medium__activity-label {
+  flex-shrink: 0;
+  font-size: 0.6875rem;
+  font-weight: 600;
+  color: var(--muted-foreground);
+  text-transform: uppercase;
+  letter-spacing: 0.05em;
+}
+
+/* Activity legend – Less / swatches / More (always reserve space so it’s not clipped) */
+.github-card-medium__legend {
+  display: flex;
+  align-items: center;
+  gap: 0.25rem;
+  flex-shrink: 0;
+  margin-top: 0.375rem;
+  padding-left: 0.125rem;
+  font-size: 0.625rem;
+  color: var(--muted-foreground);
+  min-height: 1.25rem;
+}
+
+.github-card-medium__legend-text {
+  line-height: 1;
+}
+
+.github-card-medium__legend-swatches {
+  display: flex;
+  align-items: center;
+  gap: 2px;
+}
+
+.github-card-medium__legend-swatch {
+  width: 10px;
+  height: 10px;
+  border-radius: 2px;
+  flex-shrink: 0;
+}

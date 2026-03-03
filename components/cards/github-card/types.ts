@@ -9,6 +9,8 @@ export type ContributionsData = {
   weeks: { contributionDays: ContributionDay[] }[];
   currentStreak: number;
   longestStreak: number;
+  /** Optional label for the period (e.g. "Past 6 months"). Used by mock; API data omits it. */
+  periodLabel?: string;
 };
 
 export type CommitInfo = {

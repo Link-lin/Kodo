@@ -138,3 +138,36 @@
 .animate-card-content {
   animation: card-content-in 200ms ease-out;
 }
+
+/* Activity graph – semantic classes (no raw values in class names) */
+.activity-graph {
+  display: grid;
+  width: fit-content;
+  column-gap: 3px;
+  row-gap: 2px;
+}
+.activity-graph-month-label {
+  color: var(--muted-foreground);
+  font-size: 0.75rem;
+}
+.activity-graph-month-label--small {
+  font-size: 10px;
+  line-height: 1.25;
+}
+.activity-graph-cell {
+  border-radius: 2px;
+}
+.activity-graph-strip-cell {
+  border-radius: 2px;
+  flex-shrink: 0;
+}
+
+/* Card grid – semantic layout classes */
+.card-grid-container {
+  min-height: calc(100vh - 2rem);
+}
+.drag-overlay-card {
+  min-height: 140px;
+  min-width: 0;
+  width: 16rem;
+}

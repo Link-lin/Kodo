@@ -2,17 +2,32 @@
 
 import type { ContributionDay } from "./types";
 
-const SQUARE_SIZE = 10;
+const SQUARE_SIZE_DEFAULT = 10;
+const SQUARE_SIZE_MEDIUM = 10;
 const SQUARE_GAP = 3;
 const EMPTY_COLOR = "#ebedf0";
+/** Number of weeks shown in the activity graph; total displayed should match this range */
+export const ACTIVITY_GRAPH_WEEKS = 26;
 const MONTH_LABELS = [
   "Jan", "Feb", "Mar", "Apr", "May", "Jun",
   "Jul", "Aug", "Sep", "Oct", "Nov", "Dec",
 ];
 
-type ActivityGraphProps = {
-  weeks: { contributionDays: ContributionDay[] }[];
-};
+type Week = { contributionDays: ContributionDay[] };
+
+/** Total contributions in the same last N weeks that the graph displays. Use this so the card number matches the graph. */
+export function getDisplayedTotal(
+  weeks: Week[],
+  numWeeks: number = ACTIVITY_GRAPH_WEEKS
+): number {
+  const displayed = weeks.slice(-numWeeks);
+  return displayed.reduce(
+    (sum, w) =>
+      sum +
+      (w.contributionDays ?? []).reduce((s, d) => s + d.contributionCount, 0),
+    0
+  );
+}
 
 function getDayForRow(
   week: { contributionDays: ContributionDay[] },
@@ -24,6 +39,12 @@ function getDayForRow(
     ) ?? null
   );
 }
+
+type ActivityGraphProps = {
+  weeks: { contributionDays: ContributionDay[] }[];
+  /** "medium" uses smaller cells for the medium card layout */
+  size?: "default" | "medium";
+};
 
 function getFirstDayOfWeek(
   week: { contributionDays: ContributionDay[] }
@@ -83,7 +104,7 @@ export function MiniActivityStrip({ weeks }: MiniActivityStripProps) {
         return (
           <div
             key={i}
-            className="rounded-[2px] shrink-0"
+            className="activity-graph-strip-cell"
             style={{
               width: MINI_SIZE,
               height: MINI_SIZE,
@@ -97,8 +118,10 @@ export function MiniActivityStrip({ weeks }: MiniActivityStripProps) {
   );
 }
 
-export function ActivityGraph({ weeks }: ActivityGraphProps) {
-  const displayWeeks = weeks.slice(-26);
+export function ActivityGraph({ weeks, size = "default" }: ActivityGraphProps) {
+  const displayWeeks = weeks.slice(-ACTIVITY_GRAPH_WEEKS);
+  const squareSize = size === "medium" ? SQUARE_SIZE_MEDIUM : SQUARE_SIZE_DEFAULT;
+  const monthRowHeight = size === "medium" ? 16 : 20;
   const cells: { day: ContributionDay | null; key: string }[] = [];
   const monthSpans = buildMonthSpans(displayWeeks);
 
@@ -111,16 +134,16 @@ export function ActivityGraph({ weeks }: ActivityGraphProps) {
 
   return (
     <div
-      className="grid w-fit gap-x-[3px] gap-y-1"
+      className="activity-graph"
       style={{
-        gridTemplateColumns: `repeat(${displayWeeks.length}, ${SQUARE_SIZE}px)`,
-        gridTemplateRows: `20px repeat(7, ${SQUARE_SIZE}px)`,
+        gridTemplateColumns: `repeat(${displayWeeks.length}, ${squareSize}px)`,
+        gridTemplateRows: `${monthRowHeight}px repeat(7, ${squareSize}px)`,
       }}
     >
       {monthSpans.map(({ month, startCol, numCols }) => (
         <div
           key={`${month}-${startCol}`}
-          className="text-muted-foreground text-xs"
+          className={size === "medium" ? "activity-graph-month-label activity-graph-month-label--small" : "activity-graph-month-label"}
           style={{
             gridColumn: `${startCol + 1} / span ${numCols}`,
             gridRow: 1,
@@ -137,12 +160,12 @@ export function ActivityGraph({ weeks }: ActivityGraphProps) {
         return (
           <div
             key={key}
-            className="rounded-[2px]"
+            className="activity-graph-cell"
             style={{
               gridColumn: col + 1,
               gridRow: row + 2,
-              width: SQUARE_SIZE,
-              height: SQUARE_SIZE,
+              width: squareSize,
+              height: squareSize,
               backgroundColor: color,
             }}
             title={

@@ -1,0 +1,38 @@
+---
+description: Use readable, semantic class names; avoid raw CSS values in class names
+globs: "**/*.tsx,**/*.css"
+alwaysApply: false
+---
+
+# Class names: readable and semantic
+
+- **Do not** put raw CSS attribute values directly in class names.
+- Use **readable, semantic** class names that describe purpose or component, not pixel/rem values.
+
+## Avoid
+
+- Arbitrary Tailwind values in `className`: `text-[10px]`, `gap-x-[3px]`, `rounded-[2px]`, `min-h-[90px]`, `w-64` (prefer a named size if it's a design token).
+- Class names that are just the value: anything that reads like "10px" or "3px" in the class string.
+
+## Prefer
+
+- **Named utility or component classes** defined in CSS: e.g. `.activity-graph-month-label`, `.activity-graph-grid`, `.card-content-area`.
+- In the CSS file, set the actual values: `font-size: 10px;`, `gap: 3px;`, `border-radius: 2px;`.
+- Tailwind's **semantic utilities** when they match intent: `text-xs`, `text-muted-foreground`, `rounded-sm`, `gap-2`.
+
+## Examples
+
+```tsx
+// ❌ BAD – raw values in class name
+<div className="text-[10px] gap-x-[3px] rounded-[2px] min-h-[90px]" />
+
+// ✅ GOOD – readable class names, values in CSS
+<div className="activity-graph-month-label activity-graph-grid activity-graph-cell" />
+```
+
+```css
+/* In CSS */
+.activity-graph-month-label { font-size: 10px; line-height: 1.25; }
+.activity-graph-grid { display: grid; gap: 0 3px; }
+.activity-graph-cell { border-radius: 2px; }
+```

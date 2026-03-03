@@ -41,15 +41,31 @@ export const CARD_VARIANTS: Record<
 
 export const GRID_SPAN: Record<CardSize, { col: number; row: number }> = {
   compact: { col: 2, row: 2 },
-  medium: { col: 4, row: 2},
-  expanded: { col: 3, row: 2 },
+  medium: { col: 4, row: 3 },
+  expanded: { col: 4, row: 5 },
 };
 
 export const GRID_COLS = 12;
-/** Row height (px) + gap; matches CSS auto-rows-[140px] + gap-3 */
-export const GRID_ROW_HEIGHT = 152; // 140 + 12
-/** Default column step for fallback when grid rect is unavailable */
-export const GRID_CELL_WIDTH = 110;
+/** Fixed size of one grid cell (px). Cards keep the same pixel size regardless of window. */
+export const GRID_CELL_SIZE_PX = 100;
+/** Gap between grid cells (px). Matches CSS gap. */
+export const GRID_GAP_PX = 12;
+/** One cell + gap; used for pixel↔grid conversion (drag, drop targets). */
+export const GRID_STEP_PX = GRID_CELL_SIZE_PX + GRID_GAP_PX;
+
+/** Pixel dimensions of a card given its size (matches the grid layout). */
+export function getCardDimensionsPx(size: CardSize): { width: number; height: number } {
+  const span = GRID_SPAN[size];
+  return {
+    width: span.col * GRID_CELL_SIZE_PX + (span.col - 1) * GRID_GAP_PX,
+    height: span.row * GRID_CELL_SIZE_PX + (span.row - 1) * GRID_GAP_PX,
+  };
+}
+
+/** @deprecated Use GRID_STEP_PX for both axes. */
+export const GRID_ROW_HEIGHT = GRID_STEP_PX;
+/** @deprecated Use GRID_STEP_PX for both axes. */
+export const GRID_CELL_WIDTH = GRID_STEP_PX;
 
 export function createCard(
   variant: CardVariant,
@@ -96,15 +112,17 @@ function overlaps(
   return false;
 }
 
+const GRID_PADDING_PX = 16;
+
 export function pixelToGridPosition(
   clientX: number,
   clientY: number,
   gridRect: DOMRect
 ): { col: number; row: number } {
-  const x = clientX - gridRect.left - 16;
-  const y = clientY - gridRect.top - 16;
-  const col = Math.max(0, Math.min(GRID_COLS - 1, Math.floor(x / GRID_CELL_WIDTH)));
-  const row = Math.max(0, Math.floor(y / GRID_ROW_HEIGHT));
+  const x = clientX - gridRect.left - GRID_PADDING_PX;
+  const y = clientY - gridRect.top - GRID_PADDING_PX;
+  const col = Math.max(0, Math.min(GRID_COLS - 1, Math.floor(x / GRID_STEP_PX)));
+  const row = Math.max(0, Math.floor(y / GRID_STEP_PX));
   return { col, row };
 }
 
@@ -127,37 +145,27 @@ export function findPositionForNewCard(
   return { col: 0, row: cards.length };
 }
 
-const GRID_PADDING = 16; // p-4
-const GRID_GAP = 12; // gap-3
-
-/** Convert drag delta (pixels) to grid position change using fixed constants */
+/** Convert drag delta (pixels) to grid position change using fixed cell size. */
 export function deltaToGridOffset(
   deltaX: number,
   deltaY: number
 ): { col: number; row: number } {
-  const col = Math.round(deltaX / GRID_CELL_WIDTH);
-  const row = Math.round(deltaY / GRID_ROW_HEIGHT);
-  return { col, row };
+  return {
+    col: Math.round(deltaX / GRID_STEP_PX),
+    row: Math.round(deltaY / GRID_STEP_PX),
+  };
 }
 
 /**
- * Convert drag delta to grid offset using actual grid dimensions (matches CSS:
- * grid-cols-12, gap-3, p-4, square cells via auto-rows same as column width).
- * Use when gridRef is available.
+ * Same as deltaToGridOffset; grid uses fixed cell size so rect is not needed.
+ * Kept for API compatibility with callers that pass gridRect.
  */
 export function deltaToGridOffsetFromRect(
-  gridRect: DOMRect,
+  _gridRect: DOMRect,
   deltaX: number,
   deltaY: number
 ): { col: number; row: number } {
-  const contentWidth = gridRect.width - GRID_PADDING * 2;
-  const totalGapX = (12 - 1) * GRID_GAP; // 11 gaps for 12 cols
-  const cellSize = (contentWidth - totalGapX) / 12;
-  const step = cellSize + GRID_GAP; // same for col and row (square cells)
-  return {
-    col: Math.round(deltaX / step),
-    row: Math.round(deltaY / step),
-  };
+  return deltaToGridOffset(deltaX, deltaY);
 }
 
 /** Find valid position when moving a card (excludes the moving card from overlap check) */
